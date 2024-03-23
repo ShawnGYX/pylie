@@ -249,6 +249,9 @@ class SE23(LieGroup):
         mat[0:3,3] = vec.ravel()[3:6]
         mat[0:3,4] = vec.ravel()[6:9]
         return mat
+    
+    
+    
 
 if __name__ == "__main__":
     P = SE23()

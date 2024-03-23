@@ -211,6 +211,70 @@ class SO3(LieGroup):
             R = SO3.from_matrix(mat)
 
         return R
+    
+    @staticmethod
+    def JacobianLeft(arr: np.ndarray) -> np.ndarray:
+        if not isinstance(arr, np.ndarray):
+            raise TypeError
+        elif not arr.shape == (3, 1):
+            raise ValueError
+
+        angle = np.linalg.norm(arr)
+
+        # Near |phi|==0, use first order Taylor expansion
+        if np.isclose(angle, 0.):
+            return np.eye(3) + 0.5 * SO3.wedge(arr)
+
+        axis = arr / angle
+        s = np.sin(angle)
+        c = np.cos(angle)
+
+        return (s / angle) * np.eye(3) + \
+            (1 - s / angle) * np.outer(axis, axis) + \
+            ((1 - c) / angle) * SO3.wedge(axis)
+
+    @staticmethod
+    def JacobianRight(arr : np.ndarray) -> np.ndarray:
+        if not isinstance(arr, np.ndarray):
+            raise TypeError
+        elif not arr.shape == (3, 1):
+            raise ValueError
+
+        angle = np.linalg.norm(arr)
+
+        # Near |phi|==0, use first order Taylor expansion
+        if np.isclose(angle, 0.):
+            return np.eye(3) - 0.5 * SO3.wedge(arr)
+
+        axis = arr / angle
+        s = np.sin(angle)
+        c = np.cos(angle)    
+
+        return np.eye(3) - ((1 - c)/angle) * SO3.wedge(axis) + ((angle - s)/angle) * (SO3.wedge(axis) @ SO3.wedge(axis))
+    
+    @staticmethod
+    def PT(arr : np.ndarray) -> np.ndarray:
+        if not isinstance(arr, np.ndarray):
+            raise TypeError
+        elif not arr.shape == (3, 1):
+            raise ValueError
+        
+        Pt = SO3.exp(-0.5*arr)
+
+        return Pt.as_matrix()
+    
+    @staticmethod
+    def PTC(arr : np.ndarray) -> np.ndarray:
+        if not isinstance(arr, np.ndarray):
+            raise TypeError
+        elif not arr.shape == (3, 1):
+            raise ValueError
+        
+        arr_ad = SO3.wedge(arr)
+        Pt = SO3.exp(-0.5*arr)
+        curv = np.eye(3) + (1/24) * arr_ad @ arr_ad
+
+        return (Pt @ curv)
 
 if __name__ == "__main__":
     R = SO3()
